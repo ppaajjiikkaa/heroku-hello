@@ -3,11 +3,13 @@ from django.http import HttpResponse, HttpRequest
 import cv2
 import base64
 import numpy as np
+import aio
 
 def index(request):
     ret = "<html><body>"
-    imgurl = request.POST.get("pokus","")
-    ret += "<img src='"+imgurl+"'>"
+    imgbase = request.POST.get("pokus","")
+    ret += "<img src='"+imgbase+"'>"
+    ret += "<p>"+aio.detect(imgbase)+"</p>"
     ret += "</body></html>"
     #ret = request.POST.get("pokus","")
     

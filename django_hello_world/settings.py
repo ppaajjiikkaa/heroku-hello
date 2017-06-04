@@ -42,6 +42,10 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+CSRF_TRUSTED_ORIGINS = (
+    'pajika.wz.cz',
+)
+
 #bezpečnostní nastavení pro POST - pak to ale bude voser
 #'django.middleware.csrf.CsrfViewMiddleware',
 MIDDLEWARE_CLASSES = [

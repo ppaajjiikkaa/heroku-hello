@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+#bezpečnostní nastavení pro POST - pak to ale bude voser
+#'django.middleware.csrf.CsrfViewMiddleware',
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

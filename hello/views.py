@@ -18,6 +18,6 @@ def index(request):
     #ret = request.POST.get("pokus","")
     
     #return HttpResponse(ret)
-    return JsonResponse(json.dumps(aio.detect(imgbase)))
+    return JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
 
 # Create your views here.

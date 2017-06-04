@@ -40,13 +40,13 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-CORS_ORIGIN_WHITELIST = (
+CORS_ORIGIN_WHITELIST = [
     'pajika.wz.cz',
-)
+]
 
-CSRF_TRUSTED_ORIGINS = (
+CSRF_TRUSTED_ORIGINS = [
     'pajika.wz.cz',
-)
+]
 
 #bezpečnostní nastavení pro POST - pak to ale bude voser
 #'django.middleware.csrf.CsrfViewMiddleware',

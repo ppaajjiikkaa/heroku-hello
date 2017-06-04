@@ -52,6 +52,7 @@ CSRF_TRUSTED_ORIGINS = [
 #'django.middleware.csrf.CsrfViewMiddleware',
 MIDDLEWARE_CLASSES = [
     'corsheaders.middleware.CorsMiddleware',
+    'django_cd_xhr_middleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

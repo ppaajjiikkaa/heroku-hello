@@ -135,7 +135,7 @@ def kmeans(X, K):
 def detect(imgbase):
     #imgfile = "./Tdp/20170531_144851.min.jpg"
     #img = cv2.imread(imgfile)
-    imgdecode = base64.b64decode(imgbase)
+    imgdecode = base64.b64decode(imgbase.replace("data:image/jpeg;base64,","").strip())
     npimg = np.fromstring(imgdecode, dtype=np.int8)
     img = cv2.imdecode(npimg, 1)
     img = cv2.resize(img, (720,960))

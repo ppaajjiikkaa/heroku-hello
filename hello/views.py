@@ -6,8 +6,9 @@ import numpy as np
 
 def index(request):
     ret = "<html><body>"
-    ret += "<img src='request.POST.get("pokus","")'>
-    ret += </body></html>
+    imgurl = request.POST.get("pokus","")
+    ret += "<img src='"+imgurl+"'>"
+    ret += "</body></html>"
     #ret = request.POST.get("pokus","")
     
     return HttpResponse(ret)

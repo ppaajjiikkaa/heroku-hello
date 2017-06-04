@@ -9,7 +9,7 @@ def index(request):
     ret = "<html><body>"
     imgbase = request.POST.get("pokus","")
     ret += "<img src='"+imgbase+"'>"
-    ret += "<p>"+aio.detect(imgbase)+"</p>"
+    ret += "<p>"+join(aio.detect(imgbase))+"</p>"
     ret += "</body></html>"
     #ret = request.POST.get("pokus","")
     

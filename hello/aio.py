@@ -138,8 +138,6 @@ def detect(imgbase):
     imgdecode = base64.b64decode(imgbase)
     npimg = np.fromstring(imgdecode, dtype=np.int8)
     img = cv2.imdecode(npimg, 1)
-    print(img)
-    cv2.imshow("img",img)
     img = cv2.resize(img, (720,960))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur (gray ,(5, 5), 0)

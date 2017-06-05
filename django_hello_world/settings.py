@@ -42,10 +42,12 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_WHITELIST = [
     'pajika.wz.cz',
+    'toudeputyka.wz.cz',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'pajika.wz.cz',
+    'tourdeputyka.wz.cz',
 ]
 
 #bezpečnostní nastavení pro POST - pak to ale bude voser

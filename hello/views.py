@@ -10,7 +10,7 @@ def join_list(list_to_join):
     return (', '.join(str(x) for x in list_to_join))
 
 def index(request):
-    imgbase = str(request.body).decode("utf-8")
+    imgbase = request.body.decode("utf-8")
     #ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
     #ret = HttpResponse(json.dumps(aio.detect(imgbase)))
     ret = HttpResponse(aio.detect(imgbase))

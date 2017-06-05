@@ -52,14 +52,14 @@ CSRF_TRUSTED_ORIGINS = [
 
 #bezpečnostní nastavení pro POST - pak to ale bude voser
 #'django.middleware.csrf.CsrfViewMiddleware',
+#'django.contrib.auth.middleware.AuthenticationMiddleware',
+#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
 MIDDLEWARE_CLASSES = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

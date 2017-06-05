@@ -19,8 +19,8 @@ def index(request):
     
     #return HttpResponse(ret)
     #ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
-    #ret = HttpResponse(json.dumps(aio.detect(imgbase)))
-    ret = HttpResponse(imgbase[:20])
+    ret = HttpResponse(json.dumps(aio.detect(imgbase)))
+    #ret = HttpResponse(imgbase[:20])
     return ret
 
 # Create your views here.

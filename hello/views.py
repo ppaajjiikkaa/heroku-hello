@@ -11,9 +11,9 @@ def join_list(list_to_join):
 
 def index(request):
     imgbase = request.body.decode("utf-8")
-    #ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
+    ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
     #ret = HttpResponse(json.dumps(aio.detect(imgbase)))
-    ret = HttpResponse(aio.detect(imgbase))
+    #ret = HttpResponse(aio.detect(imgbase))
     return ret
 
 # Create your views here.

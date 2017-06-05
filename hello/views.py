@@ -18,7 +18,7 @@ def index(request):
     #ret = request.POST.get("pokus","")
     
     #return HttpResponse(ret)
-    ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
+    ret = HttpResponse(json.dumps(aio.detect(imgbase)), safe=False)
     ret["Access-Control-Allow-Headers"] = "Access-Control-Allow-Origin"
     return ret
 

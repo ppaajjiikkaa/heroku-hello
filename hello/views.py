@@ -18,6 +18,8 @@ def index(request):
     #ret = request.POST.get("pokus","")
     
     #return HttpResponse(ret)
-    return JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
+    ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
+    ret["Access-Control-Allow-Headers"] = "Access-Control-Allow-Origin"
+    return ret
 
 # Create your views here.

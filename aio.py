@@ -133,16 +133,40 @@ def kmeans(X, K):
 
 ##vlastni detekce
 def detect(imgbase):
-    #imgfile = "./Tdp/20170531_144851.min.jpg"
-    #img = cv2.imread(imgfile)
+    ret = None
+    imgOrig = base64toImg(imgbase)
+    for i in range(4):
+        ret = None
+        img = imutils.rotate_bound(imgOrig, i*90)
+        img = cv2.resize(img, (720,960))
+        #cv2.imshow(str(i),img)
+        #ret = detectSingle(img)
+        try:
+            #print ("T",i,ret)
+            ret = detectSingle(img)
+        except:
+            #print("E",i,ret)
+            ret = False
+        if ret != False: break
+    return ret
+
+def base64toImg(imgbase):
     imgdecode = base64.b64decode(imgbase.replace("data:image/jpeg;base64,","").strip())
     npimg = np.fromstring(imgdecode, dtype=np.int8)
-    img = cv2.imdecode(npimg, 1)
-    img = cv2.resize(img, (720,960))
+    return cv2.imdecode(npimg, 1)
+    
+
+def detectSingle(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur (gray ,(5, 5), 0)
-    edged = cv2.Canny(blurred, 75, 200)
-
+    #edged = cv2.Canny(blurred, 75, 200)
+    CannyMedian = np.median(blurred)
+    CannySigma = 0.33
+    CannyLowerThresh = int(max(0, (1.0 - CannySigma) * CannyMedian))
+    CannyHigherThresh = int(min(255, (1.0 + CannySigma) * CannyMedian))
+    edged = cv2.Canny(blurred, CannyLowerThresh, CannyHigherThresh)
+    #cv2.imshow("E", edged)
+    
     cnts =cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts= cnts[0] if imutils.is_cv2() else cnts[1]
     docCnt = None
@@ -161,7 +185,7 @@ def detect(imgbase):
     paper = four_point_transform(img, docCnt.reshape(4, 2))
     warped = four_point_transform(gray, docCnt.reshape(4, 2))
     thresh = cv2.adaptiveThreshold(warped,50,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,35,10)
-
+    
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if imutils.is_cv2() else cnts[1]
     qcnts = []
@@ -181,6 +205,7 @@ def detect(imgbase):
                 wdts.append(w)
                 hgts.append(h)
 
+   
     pts = centroid_matrix_from_contours(qcnts, 10, 15)
     recs = []
     offw = int(np.average(wdts)/2-4)

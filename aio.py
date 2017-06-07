@@ -223,7 +223,7 @@ def detectSingle(img):
         trec = thresh[r[1]:r[3], r[0]:r[2]]
         recavg = np.average(trec)
         
-        if recavg < 44:
+        if recavg < 44 and recavg > 10:
             cv2.rectangle(paper, (r[0], r[1]), (r[2], r[3]), (0,0,255))
             crossed.append(i)
         i+=1

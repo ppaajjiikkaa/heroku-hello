@@ -1,12 +1,79 @@
 #!/usr/bin/env python3
 from imutils import contours
+from math import hypot
 import numpy as np
 import imutils
 import cv2
 import random
 import base64
 
+
 #funkce
+def approx_shape(cnt, perimult = 0.01):
+    peri = cv2.arcLength(cnt, True)
+    return cv2.approxPolyDP(cnt, perimult * peri, True) #peri * 0.02
+
+def unique_pts(cnt):
+    a = np.ascontiguousarray(cnt)
+    unique_a = np.unique(a.view([('', a.dtype)]*a.shape[1]))
+    return unique_a.view(a.dtype).reshape((unique_a.shape[0], a.shape[1]))
+
+
+def largest_contour(cnts):
+    area = 0
+    ret = None
+    for c in cnts:
+        x,y,w,h = cv2.boundingRect(c)
+        aps = approx_shape(c)
+        cfp = contour_to_four_pts(aps)
+        up = unique_pts(cfp)
+        if w * h > area and len(up) == 4:
+            ret = c
+            area = w * h
+    return ret
+
+##def widest_contour(cnts):
+##    hwr = 0
+##    ret = None
+##    print(len(cnts))
+##    for c in cnts:
+##        x,y,w,h = cv2.boundingRect(c)
+##        if len(c) >= 4  and w / h > 3.5 and w / h < 4.5 and w / h > hwr:
+##            print (w, h)
+##            ret = c
+##            hwr = w / h
+##    return ret
+    
+
+def closest_point(pt, pts):
+    ret = None
+    mindist = None
+    for p in pts:
+        dist = hypot(p[0][0] - pt[0], p[0][1] - pt[1])
+        if mindist == None: mindist = dist
+        if mindist >= dist:
+            mindist = dist
+            ret = ([p[0][0], p[0][1]])
+    return ret
+
+def contour_to_four_pts(cnt):
+    ret = np.zeros((4,2), np.int32)
+    x,y,w,h = cv2.boundingRect(cnt)
+
+    newpt = (x, y)
+    ret[0] = closest_point(newpt, cnt)
+    
+    newpt = (x + w, y)
+    ret[1] = closest_point(newpt, cnt)
+
+    newpt = (x, y + h)
+    ret[2] = closest_point(newpt, cnt)
+    
+    newpt = (x + w, y + h)
+    ret[3] = closest_point(newpt, cnt)
+
+    return ret
+
 def linear_pts(n, min, max):
     size = (max - min) / (n-1)
     ret = []
@@ -15,17 +82,54 @@ def linear_pts(n, min, max):
     return ret
     
 
-def centroid_matrix_from_contours(cnts, wdth, hght):
+def min_diff(nparr):
+    ret = None
+    for i1 in range(len(nparr)):
+        for i2 in range(len(nparr)):
+            if i1 == i2: continue
+            if ret == None:
+                ret = abs(nparr[i1]-nparr[i2])
+            else:
+                ret = min(ret,abs(nparr[i1]-nparr[i2]))
+    return ret
+
+def centroid_matrix_from_contours(cnts, wdth, hght, img_shape):
+    median_offset = 2 # vůle pro porovnání přesahu kontůr jednotlivých (X) políček
+    edge_offset = 2 # zvětšení vzdálenosti od okraje obrázku    
+    bottom_box_ratio = 1.1 # kolik procent dělá políčko splněné úkoly
     cx = []
     cy = []
+    cw = []
+    ch = []
     for c in cnts:
         M = cv2.moments(c)
+        _, _, w, h = cv2.boundingRect(c)
+        cw.append(w)
+        ch.append(h)
         cx.append(float(M["m10"] / M["m00"]))
         cy.append(float(M["m01"] / M["m00"]))
 
+   
     kcx, _ = kmeans(cx, linear_pts(wdth, np.amin(cx), np.amax(cx)))
     kcy, _ = kmeans(cy, linear_pts(hght, np.amin(cy), np.amax(cy)))
-  
+
+    mcw = int(np.median(cw))
+    mch = int(np.median(ch))
+
+    #redistribuce kmeans
+    if len(kcx) != wdth or len(kcy) != hght or min_diff(kcx) < (mcw - median_offset) or min_diff(kcy) < (mch - median_offset):
+        imgw = img_shape[1]
+        imgh = img_shape[0] / bottom_box_ratio
+        img_rem_w = imgw - (wdth * mcw)
+        img_rem_h = imgh - (hght * mch)
+        xdist = (img_rem_w - (2 * edge_offset)) / (wdth + 1)
+        ydist = (img_rem_h - (2 * edge_offset)) / (hght + 1)
+        x_center_offset = xdist + edge_offset + (mcw / 2)
+        y_center_offset = ydist + edge_offset + (mch / 2)
+
+        kcx = linear_pts(wdth, x_center_offset, imgw - x_center_offset)
+        kcy = linear_pts(hght, y_center_offset, imgh - y_center_offset)
+        
     pts = np.zeros((int(hght*wdth), 2), int)
     i=0
     for x in range(wdth):
@@ -137,16 +241,16 @@ def detect(imgbase):
     imgOrig = base64toImg(imgbase)
     for i in range(4):
         ret = None
-        img = imutils.rotate_bound(imgOrig, i*90)
+        img = imutils.rotate_bound(imgOrig, i*90) #dát i
         img = cv2.resize(img, (720,960))
         #cv2.imshow(str(i),img)
         #ret = detectSingle(img)
         try:
-            #print ("T",i,ret)
             ret = detectSingle(img)
+            #print ("T",i,ret,np.average(ret))
         except:
-            #print("E",i,ret)
             ret = False
+            #print("E",i,ret,np.average(ret))
         if ret != False: break
     return ret
 
@@ -159,28 +263,25 @@ def base64toImg(imgbase):
 def detectSingle(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur (gray ,(5, 5), 0)
-    #edged = cv2.Canny(blurred, 75, 200)
-    CannyMedian = np.median(blurred)
-    CannySigma = 0.33
-    CannyLowerThresh = int(max(0, (1.0 - CannySigma) * CannyMedian))
-    CannyHigherThresh = int(min(255, (1.0 + CannySigma) * CannyMedian))
-    edged = cv2.Canny(blurred, CannyLowerThresh, CannyHigherThresh)
+    thresh = cv2.adaptiveThreshold(blurred,50,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,35,10)
+    edged = cv2.Canny(thresh, 75, 200)
     #cv2.imshow("E", edged)
     
     cnts =cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts= cnts[0] if imutils.is_cv2() else cnts[1]
     docCnt = None
 
-    if len(cnts) > 0:
-        cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
-        for c in cnts:
-            peri = cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+    #cv2.drawContours(img, cnts, -1, (0,255,0), 1)
+    #cv2.imshow("cnts_img",img)
 
-            if len(approx) == 4:
-                docCnt = approx
-                break
+    lcnt = largest_contour(cnts)
+    approx = approx_shape(lcnt)
+    docCnt = contour_to_four_pts(approx)
 
+    #approximg = img.copy()
+    #cv2.drawContours(approximg, docCnt, -1, (0,255,0), 1)
+    #cv2.polylines(approximg, [docCnt], 1, (0,255,255))
+    #cv2.imshow("cnts_img",approximg)
 
     paper = four_point_transform(img, docCnt.reshape(4, 2))
     warped = four_point_transform(gray, docCnt.reshape(4, 2))
@@ -206,30 +307,37 @@ def detectSingle(img):
                 hgts.append(h)
 
    
-    pts = centroid_matrix_from_contours(qcnts, 10, 15)
+    #cv2.drawContours(paper, qcnts, -1, (0,255,0), 1)
+    #cv2.imshow("cnts_warped",paper)
+    
+    pts = centroid_matrix_from_contours(qcnts, 10, 15, paper.shape)
     recs = []
     offw = int(np.average(wdts)/2-4)
     offh = int(np.average(hgts)/2-4)
 
     for p in pts:
         recs.append([p[0]-offw, p[1]-offh, p[0]+offw, p[1]+offh])
-        cv2.rectangle(paper, (p[0]-offw, p[1]-offh), (p[0]+offw, p[1]+offh), (0,255,0))
+        #cv2.rectangle(paper, (p[0]-offw, p[1]-offh), (p[0]+offw, p[1]+offh), (0,0,255))
+        
+    #cv2.imshow("rects",paper)
+    thresh = cv2.adaptiveThreshold(warped,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,35,10)#35,10)
+    #thresh2 = cv2.threshold(thresh.copy(), 10, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
-    thresh2 = cv2.threshold(warped, 200, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-
+    #cv2.imshow("img",thresh)
     i=0
     crossed=[]
     for r in recs:
         trec = thresh[r[1]:r[3], r[0]:r[2]]
         recavg = np.average(trec)
-        
-        if recavg < 44 and recavg > 10:
+
+        #print(i, recavg)
+        if recavg < 110 and recavg > 35:
             cv2.rectangle(paper, (r[0], r[1]), (r[2], r[3]), (0,0,255))
             crossed.append(i)
         i+=1
 
     return crossed
-    #cv2.imshow("img",paper)
+    
 
 
 

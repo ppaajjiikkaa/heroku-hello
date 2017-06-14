@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 import aio
 import json
-import cloudinary
+#import cloudinary
 
 def join_list(list_to_join):
     return (', '.join(str(x) for x in list_to_join))

@@ -9,7 +9,7 @@ def join_list(list_to_join):
 
 def index(request):
     imgbase = request.body.decode("utf-8")
-    cloudinary.cloudupload(imgbase)
+    #cloudinary.cloudupload(imgbase)
     ret = JsonResponse(json.dumps(aio.detect(imgbase)), safe=False)
        
     return ret
